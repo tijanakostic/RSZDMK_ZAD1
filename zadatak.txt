@@ -1,0 +1,127 @@
+#include <LiquidCrystal.h>
+#include <util/delay.h>
+
+LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);
+
+byte herc [8] = {
+B00000 ,
+B01010 ,
+B11111 ,
+B11111 ,
+B01110 ,
+B00100 ,
+B00000 ,
+};
+
+byte tref [8] = {
+B00000 ,
+B00100 ,
+B01010 ,
+B10101 ,
+B01010 ,
+B00100 ,
+B01110 ,
+};
+
+byte karo [8] = {
+B00000 ,
+B00100 ,
+B01110 ,
+B11111 ,
+B01110 ,
+B00100 ,
+B00000 ,
+};
+
+
+byte pik [8] = {
+B00000 ,
+B00100 ,
+B01110 ,
+B11111 ,
+B11111 ,
+B00100 ,
+B00100 ,
+};
+
+
+char ocitaj_taster()
+{
+  char taster = 0;
+  unsigned char row;
+  
+  MCUCR &= ~0x10;
+  PORTD = 0x0f; 
+  
+  for(row = 0x80; row != 0x08; row >>= 1)
+  {
+    DDRD = row;
+	_delay_ms(2);
+    
+    switch(row | ((~PIND) & 0x0f))
+    {
+      case 0x84:
+      	taster = '2'; break;
+		
+	  case 0x48:
+      	taster = '4'; break;
+      case 0x44:
+      	taster = '5'; break;
+      case 0x42:
+      	taster = '6'; break;
+      case 0x24:
+      	taster = '8'; break;
+		
+	  case 0x18:
+      	taster = '*'; break;
+    }
+  }
+  
+  return taster;
+}
+
+int main()
+{
+  	lcd.begin(16, 2);
+    lcd.createChar (0 , herc ) ; 
+  	lcd.createChar (1 , tref ) ;
+  	lcd.createChar (2 , pik ) ;
+  	lcd.createChar (3 , karo ) ;
+  	unsigned char pritisnut = 0,pusten = 0;
+    lcd.setCursor(0,0);
+    lcd.print("Pritisni *");
+    _delay_ms(500);
+	while(1)
+    { 
+	  char taster = ocitaj_taster();
+      if(taster=='5')
+        {  lcd.clear();
+         lcd.print("Igra je gotova!"); }
+      if (taster =='*')      	
+        {
+              lcd.clear();
+        		int i;
+        		for(i=0; i<4; i++)
+                {
+                  int n;
+                  n=random(0,3);
+                  lcd.write( byte (n) ) ;
+                }
+      
+         	  _delay_ms(2000); 
+        		lcd.setCursor(0,0);
+        		lcd.clear();
+        		lcd.print("----");
+       		  pritisnut = taster;
+        
+        
+           
+    	}
+        if(pritisnut == taster)
+        	pusten = 1;
+          else
+            pusten = 0;     
+         }
+  
+  	return 0;
+}
